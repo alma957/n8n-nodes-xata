@@ -1,19 +1,19 @@
 {
-  "name": "n8n-nodes-<...>",
+  "name": "n8n-nodes-xata",
   "version": "0.1.0",
-  "description": "",
+  "description": "Xata Api",
   "keywords": [
     "n8n-community-node-package"
   ],
   "license": "MIT",
-  "homepage": "",
+  "homepage": "https://xata.io",
   "author": {
-    "name": "",
-    "email": ""
+    "name": "am4619",
+    "email": "alberto@zelt.app"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/<...>/n8n-nodes-<...>.git"
+    "url": "https://github.com/alma957/n8n-nodes-xata.git"
   },
   "main": "index.js",
   "scripts": {
@@ -30,12 +30,12 @@
   "n8n": {
     "n8nNodesApiVersion": 1,
     "credentials": [
-      "dist/credentials/ExampleCredentialsApi.credentials.js",
-      "dist/credentials/HttpBinApi.credentials.js"
+      "dist/credentials/XataApi.credentials.js"
+
     ],
     "nodes": [
-      "dist/nodes/ExampleNode/ExampleNode.node.js",
-      "dist/nodes/HttpBin/HttpBin.node.js"
+
+      "dist/nodes/Xata/Xata.node.js"
     ]
   },
   "devDependencies": {
