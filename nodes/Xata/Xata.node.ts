@@ -13,7 +13,7 @@ import { getAdditionalOptions, getItem, xataApiList, xataApiRequest } from './Ge
 export class Xata implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Xata',
-		name: 'Xata',
+		name: 'xata',
 		icon: 'file:xata.svg',
 		group: ['transform'],
 		version: 1,
