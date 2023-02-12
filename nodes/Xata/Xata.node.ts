@@ -44,15 +44,21 @@ export class Xata implements INodeType {
 						action: 'Append records to a table',
 					},
 					{
+						name: 'Create',
+						value: 'create',
+						description: 'Create a new record with ID',
+						action: 'Create record in a table',
+					},
+					{
 						name: 'Create or Update',
 						value: 'upsert',
-						description: 'Create a new record, or update the current one if it already exists (upsert)',
+						description: 'Create a new record with ID, or update the current one if it already exists (upsert)',
 						action: 'Upsert record in a table',
 					},
 					{
 						name: 'Delete',
 						value: 'delete',
-						description: 'Delete records from a table',
+						description: 'Delete a record from a table',
 						action: 'Delete records from a table',
 					},
 					{
@@ -64,17 +70,17 @@ export class Xata implements INodeType {
 					{
 						name: 'Read',
 						value: 'read',
-						description: 'Read records from a table',
-						action: 'Read records from a table',
+						description: 'Read a record from a table',
+						action: 'Read a record from a table',
 					},
 					{
 						name: 'Update',
 						value: 'update',
-						description: 'Update records in a table',
-						action: 'Update records in a table',
+						description: 'Update a record in a table',
+						action: 'Update a record in a table',
 					},
 				],
-				default: 'read',
+				default: 'append',
 			},
 			// Node properties which the user gets displayed and
 			// can change on the node.
@@ -94,7 +100,7 @@ export class Xata implements INodeType {
 				displayName: 'Database Location',
 				name: 'location',
 				type: 'options',
-				noDataExpression: true,
+				description: 'The location of the database you want to access',
 				options: [
 					{
 						name: 'us-east-1',
@@ -138,7 +144,22 @@ export class Xata implements INodeType {
 			//-------------------------
 			//         Append
 			//-------------------------
-
+			//-------------------------
+			//         Create
+			//-------------------------
+			{
+				displayName: 'ID',
+				name: 'id',
+				type: 'string',
+				displayOptions: {
+					show: {
+						operation: ['create'],
+					},
+				},
+				default: '',
+				required: true,
+				description: 'ID of the record to create',
+			},
 			//-------------------------
 			//        delete
 			//-------------------------
@@ -348,7 +369,7 @@ export class Xata implements INodeType {
 				description: 'ID of the record to create or update',
 			},
 			//-------------------------
-			//        update + append
+			//        update + upsert + append + create
 			//-------------------------
 			{
 				displayName: 'Send All Columns',
@@ -359,7 +380,7 @@ export class Xata implements INodeType {
 				description: 'Whether to send all the columns to Xata',
 				displayOptions: {
 					show: {
-						operation: ['append', 'update','upsert'],
+						operation: ['append', 'update','upsert','create'],
 					},
 				},
 			},
@@ -373,7 +394,7 @@ export class Xata implements INodeType {
 				},
 				displayOptions: {
 					show: {
-						operation: ['append', 'update','upsert'],
+						operation: ['append', 'update','upsert', 'create'],
 						sendAllColumns: [false],
 					},
 				},
@@ -388,7 +409,7 @@ export class Xata implements INodeType {
 				type: 'collection',
 				displayOptions: {
 					show: {
-						operation: ['append', 'update','upsert'],
+						operation: ['append', 'update','upsert','create'],
 					},
 				},
 				default: {},
@@ -404,7 +425,7 @@ export class Xata implements INodeType {
 						},
 						displayOptions: {
 							show: {
-								'/operation': ['append', 'update','upsert'],
+								'/operation': ['append', 'update','upsert','create'],
 								'/sendAllColumns': [true],
 							},
 						},
@@ -559,9 +580,9 @@ export class Xata implements INodeType {
 					}
 				}
 			}
-		} else if (operation === 'update' || operation ==='upsert') {
+		} else if (operation === 'update' || operation ==='upsert' || operation === 'create') {
 			const sendAllColumns = this.getNodeParameter('sendAllColumns', 0) as boolean;
-			const method = operation === 'update' ? 'PATCH' : 'POST'
+			const method = operation === 'update' ? 'PATCH' : operation === 'upsert' ? 'POST' : 'PUT'
 			for (let i = 0; i < items.length; i++) {
 				try {
 					const id = this.getNodeParameter('id', i) as string;

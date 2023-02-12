@@ -12,7 +12,7 @@ Xata is a serverless database with built-in powerful search and analytics.
 [Compatibility](#compatibility)  
 [Usage](#usage)  <!-- delete if not using this section -->  
 [Resources](#resources)  
-
+[Version history](#version-history)  <!-- delete if not using this section -->  
 
 ## Installation
 
@@ -21,7 +21,8 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 ## Operations
 
 * Append a record to a table
-* Create or Update a record in a table (you need to specify an ID)
+* Create a record by ID
+* Create or Update a record in a table by ID
 * Delete a recoord from a table
 * List records from a table
 * Read a record from a table
@@ -48,4 +49,7 @@ if using the filter functionalities, avoid using the full dictionary as in the X
 
 [MIT](https://github.com/n8n-io/n8n-nodes-starter/blob/master/LICENSE.md)
 
+## Version history
 
+* 0.2.1 Added create record by id
+* 0.1.3 Added upsert

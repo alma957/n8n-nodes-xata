@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-xata",
-  "version": "0.1.3",
+  "version": "0.2.1",
   "description": "Xata Api",
   "keywords": [
     "n8n-community-node-package"
