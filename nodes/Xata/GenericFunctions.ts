@@ -92,11 +92,11 @@ export function filterItemColumns(item: IDataObject, filterColumns: string[], ig
 
 }
 
-export async function xataApiRequest(this: IExecuteFunctions, apiKey: string, method: IHttpRequestMethods, slug: string,location:string, database: string, branch: string, table: string, resource: string, body: IDataObject, option: IDataObject = {}, url?: string): Promise<any> { // tslint:disable-line:no-any
+export async function xataApiRequest(this: IExecuteFunctions, apiKey: string, method: IHttpRequestMethods, endpoint: string, body: IDataObject, option: IDataObject = {}): Promise<any> { // tslint:disable-line:no-any
 
 	const options: IHttpRequestOptions = {
 
-		url: url || `https://${slug}.${location}.xata.sh/db/${database}:${branch}/tables/${table}/${resource}`,
+		url: endpoint,
 		headers: {
 			'Content-Type': 'application/json',
 			Authorization: `Bearer ${apiKey}`,
@@ -125,7 +125,7 @@ export async function xataApiRequest(this: IExecuteFunctions, apiKey: string, me
 
 }
 
-export async function xataApiList(this: IExecuteFunctions, apiKey: string, method: IHttpRequestMethods, slug: string, location:string, database: string, branch: string, table: string, resource: string, body: IDataObject, returnAll: boolean, url?: string): Promise<any> { // tslint:disable-line:no-any
+export async function xataApiList(this: IExecuteFunctions, apiKey: string, method: IHttpRequestMethods, endpoint: string, body: IDataObject, returnAll: boolean): Promise<any> { // tslint:disable-line:no-any
 
 	const page = body['page'] as IDataObject;
 
@@ -140,7 +140,7 @@ export async function xataApiList(this: IExecuteFunctions, apiKey: string, metho
 
 			do {
 
-				const responseData = await xataApiRequest.call(this, apiKey, method, slug,location, database, branch, table, resource, body);
+				const responseData = await xataApiRequest.call(this, apiKey, method, endpoint, body);
 				const crs = responseData.meta.page.cursor;
 				const recs = responseData.records;
 				recs.forEach((el: IDataObject)=>records.push(el))
@@ -177,7 +177,7 @@ export async function xataApiList(this: IExecuteFunctions, apiKey: string, metho
 
 		try {
 
-			const responseData = await xataApiRequest.call(this, apiKey, method, slug,location, database, branch, table, resource, body);
+			const responseData = await xataApiRequest.call(this, apiKey, method,endpoint, body);
 			records = responseData.records;
 
 		} catch (error) {

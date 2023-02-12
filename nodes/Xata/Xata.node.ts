@@ -44,6 +44,12 @@ export class Xata implements INodeType {
 						action: 'Append records to a table',
 					},
 					{
+						name: 'Create or Update',
+						value: 'upsert',
+						description: 'Create a new record, or update the current one if it already exists (upsert)',
+						action: 'Upsert record in a table',
+					},
+					{
 						name: 'Delete',
 						value: 'delete',
 						description: 'Delete records from a table',
@@ -90,7 +96,6 @@ export class Xata implements INodeType {
 				type: 'options',
 				noDataExpression: true,
 				options: [
-
 					{
 						name: 'us-east-1',
 						value: 'us-east-1',
@@ -98,7 +103,6 @@ export class Xata implements INodeType {
 					{
 						name: 'us-west-2',
 						value: 'us-west-2',
-
 					},
 					{
 						name: 'eu-west-1',
@@ -328,6 +332,22 @@ export class Xata implements INodeType {
 				description: 'ID of the record to update',
 			},
 			//-------------------------
+			//        upsert
+			//-------------------------
+			{
+				displayName: 'ID',
+				name: 'id',
+				type: 'string',
+				displayOptions: {
+					show: {
+						operation: ['upsert'],
+					},
+				},
+				default: '',
+				required: true,
+				description: 'ID of the record to create or update',
+			},
+			//-------------------------
 			//        update + append
 			//-------------------------
 			{
@@ -339,7 +359,7 @@ export class Xata implements INodeType {
 				description: 'Whether to send all the columns to Xata',
 				displayOptions: {
 					show: {
-						operation: ['append', 'update'],
+						operation: ['append', 'update','upsert'],
 					},
 				},
 			},
@@ -353,7 +373,7 @@ export class Xata implements INodeType {
 				},
 				displayOptions: {
 					show: {
-						operation: ['append', 'update'],
+						operation: ['append', 'update','upsert'],
 						sendAllColumns: [false],
 					},
 				},
@@ -368,7 +388,7 @@ export class Xata implements INodeType {
 				type: 'collection',
 				displayOptions: {
 					show: {
-						operation: ['append', 'update'],
+						operation: ['append', 'update','upsert'],
 					},
 				},
 				default: {},
@@ -384,7 +404,7 @@ export class Xata implements INodeType {
 						},
 						displayOptions: {
 							show: {
-								'/operation': ['append', 'update'],
+								'/operation': ['append', 'update','upsert'],
 								'/sendAllColumns': [true],
 							},
 						},
@@ -424,7 +444,7 @@ export class Xata implements INodeType {
 		const apiKey = credentials.apiKey as string;
 		const operation = this.getNodeParameter('operation', 0) as string;
 		const slug = this.getNodeParameter('slug', 0) as string;
-		const database = (this.getNodeParameter('database', 0) as string)
+		const database = this.getNodeParameter('database', 0) as string;
 		const location = (this.getNodeParameter('location', 0) as string)
 
 			.trim()
@@ -432,7 +452,7 @@ export class Xata implements INodeType {
 			.replace(/\s/g, '-') as string;
 		const branch = this.getNodeParameter('branch', 0) as string;
 		const table = this.getNodeParameter('table', 0) as string;
-
+		const baseUrl = `https://${slug}.${location}.xata.sh/db/${database}:${branch}/tables/${table}/`;
 		const returnData: IDataObject[] = [];
 
 		if (operation === 'append') {
@@ -442,25 +462,16 @@ export class Xata implements INodeType {
 				: items.length;
 			const sendAllColumns = this.getNodeParameter('sendAllColumns', 0) as boolean;
 			const records = [];
-
+			const endpoint = baseUrl + 'bulk';
 			for (let i = 0; i < items.length; i++) {
 				try {
 					const item = getItem.call(this, i, items[i].json, sendAllColumns);
 					records.push(item);
 
 					if (records.length === bulkSize || i === items.length - 1) {
-						const responseData = await xataApiRequest.call(
-							this,
-							apiKey,
-							'POST',
-							slug,
-							location,
-							database,
-							branch,
-							table,
-							'bulk',
-							{ records: records },
-						);
+						const responseData = await xataApiRequest.call(this, apiKey, 'POST', endpoint, {
+							records: records,
+						});
 						responseData['recordIDs'].forEach((el: string) => returnData.push({ id: el }));
 						records.length = 0;
 					}
@@ -477,17 +488,12 @@ export class Xata implements INodeType {
 			for (let i = 0; i < items.length; i++) {
 				try {
 					const id = this.getNodeParameter('id', i) as string;
-					const resource = `data/${id}` as string;
+					const endpoint = (baseUrl + `data/${id}`) as string;
 					const responseData = await xataApiRequest.call(
 						this,
 						apiKey,
 						'DELETE',
-						slug,
-						location,
-						database,
-						branch,
-						table,
-						resource,
+						endpoint,
 						{},
 						{ returnFullResponse: true },
 					);
@@ -508,22 +514,17 @@ export class Xata implements INodeType {
 			}
 		} else if (operation === 'list') {
 			try {
-				const resource = 'query';
 				const body = getAdditionalOptions.call(
 					this,
 					this.getNodeParameter('additionalOptions', 0, {}) as IDataObject,
 				) as IDataObject;
+				const endpoint = baseUrl + 'query';
 				const returnAll = this.getNodeParameter('returnAll', 0) as boolean;
 				const responseData = await xataApiList.call(
 					this,
 					apiKey,
 					'POST',
-					slug,
-					location,
-					database,
-					branch,
-					table,
-					resource,
+					endpoint,
 					body,
 					returnAll,
 				);
@@ -540,25 +541,14 @@ export class Xata implements INodeType {
 			for (let i = 0; i < items.length; i++) {
 				try {
 					const id = this.getNodeParameter('id', i) as string;
-					const resource = `data/${id}` as string;
+					const endpoint = (baseUrl + `data/${id}`) as string;
 					const columns = (
 						(this.getNodeParameter('pullAllColumns', i) as boolean)
 							? undefined
 							: (this.getNodeParameter('columns', i) as string[])
 					)?.map((el) => (typeof el === 'string' ? el.trim() : null));
 					const body = columns ? { columns: columns } : ({} as IDataObject);
-					const responseData = await xataApiRequest.call(
-						this,
-						apiKey,
-						'GET',
-						slug,
-						location,
-						database,
-						branch,
-						table,
-						resource,
-						body,
-					);
+					const responseData = await xataApiRequest.call(this, apiKey, 'GET', endpoint, body);
 					returnData.push(responseData);
 				} catch (error) {
 					if (this.continueOnFail()) {
@@ -569,25 +559,16 @@ export class Xata implements INodeType {
 					}
 				}
 			}
-		} else if (operation === 'update') {
+		} else if (operation === 'update' || operation ==='upsert') {
 			const sendAllColumns = this.getNodeParameter('sendAllColumns', 0) as boolean;
-
+			const method = operation === 'update' ? 'PATCH' : 'POST'
 			for (let i = 0; i < items.length; i++) {
 				try {
 					const id = this.getNodeParameter('id', i) as string;
+					const endpoint = baseUrl + `data/${id}`;
 					const item = getItem.call(this, i, items[i].json, sendAllColumns);
-					const responseData = await xataApiRequest.call(
-						this,
-						apiKey,
-						'PATCH',
-						slug,
-						location,
-						database,
-						branch,
-						table,
-						`data/${id}`,
-						item,
-					);
+
+					const responseData = await xataApiRequest.call(this, apiKey, method , endpoint, item);
 					returnData.push(responseData);
 				} catch (error) {
 					if (this.continueOnFail()) {
@@ -598,7 +579,7 @@ export class Xata implements INodeType {
 					}
 				}
 			}
-		} else {
+		}  else {
 			throw new NodeOperationError(this.getNode(), 'Operation undefined');
 		}
 

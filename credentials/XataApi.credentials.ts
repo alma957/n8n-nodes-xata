@@ -1,5 +1,4 @@
 import {
-	IAuthenticateGeneric,
 	ICredentialType,
 	INodeProperties,
 } from 'n8n-workflow';
@@ -16,12 +15,5 @@ export class XataApi implements ICredentialType {
 			default: '',
 		},
 	];
-	authenticate: IAuthenticateGeneric = {
-		type: 'generic',
-		properties: {
-			qs: {
-				'api_key': '=Bearer {{$credentials.apiKey}}'
-			}
-		},
-	};
+
 }
