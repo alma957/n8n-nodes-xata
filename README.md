@@ -21,6 +21,7 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 ## Operations
 
 * Append a record to a table
+* Create or Update a record in a table (you need to specify an ID)
 * Delete a recoord from a table
 * List records from a table
 * Read a record from a table
@@ -41,7 +42,7 @@ if using the filter functionalities, avoid using the full dictionary as in the X
 ## Resources
 
 * [n8n community nodes documentation](https://docs.n8n.io/integrations/community-nodes/)
-* [Xata docsx](https://xata.io/docs/overview)
+* [Xata docs](https://xata.io/docs/overview)
 
 ## License
 
